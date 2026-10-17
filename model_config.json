@@ -1,0 +1,25 @@
+{
+  "hf_repo": "Qwen/Qwen3-8B-GGUF",
+  "hf_file": "Qwen3-8B-Q4_K_M.gguf",
+  "model_alias": "qwen3-8b-pareto",
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "embedding_dim": 384,
+  "debate_rounds": 2,
+  "rag_top_k": 4,
+  "peer_timeout_sec": 1800,
+  "enable_tools": true,
+  "max_tool_iterations": 3,
+  "llama_cpp_release": "auto",
+  "llama_server_flags": {
+    "threads": 4,
+    "threads_batch": 4,
+    "ctx_size": 4096,
+    "batch_size": 512,
+    "ubatch_size": 256,
+    "parallel_slots": 1,
+    "cache_type_k": "q8_0",
+    "cache_type_v": "q8_0",
+    "load_mode": "mmap",
+    "flash_attn": "on"
+  }
+}
