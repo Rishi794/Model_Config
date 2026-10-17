@@ -32,7 +32,7 @@ CPU flags, RAG depth, or number of debate rounds **without touching the executio
 | --- | --- | --- | --- |
 | `threads` | `-t` | `4` | Matches the 4 vCPU allocation of `ubuntu-latest`; avoids oversubscription stalls. |
 | `threads_batch` | `-tb` | `4` | Threads for prompt evaluation (batch) processing. |
-| `ctx_size` | `-c` | `8192` | Context window per slot. Tool results, retrieved memory and peer findings all share it, so 8192 is the practical floor when `enable_tools` is on. |
+| `ctx_size` | `-c` | `32768` | Context window per slot. Must exceed `system_prompt.md` (~13k tokens for the current charter) plus retrieved memory, peer findings and tool results. 32k KV ≈ 2.5 GB at `q8_0` on Qwen3-8B. |
 | `batch_size` | `-b` | `512` | Logical prompt batch size. |
 | `ubatch_size` | `-ub` | `256` | Physical micro-batch; keeps the compute scratchpad inside L3. |
 | `parallel_slots` | `-np` | `1` | Single sequence slot: cuts KV-cache allocation ~4x vs. the multi-slot default. |
@@ -65,8 +65,33 @@ CPU flags, RAG depth, or number of debate rounds **without touching the executio
 ```json
 "debate_rounds": 3,
 "rag_top_k": 6,
-"llama_server_flags": { "ctx_size": 12288, "batch_size": 1024, "ubatch_size": 512 }
+"llama_server_flags": { "batch_size": 1024, "ubatch_size": 512 }
 ```
+
+### Sizing `ctx_size` to the mission
+
+Every agent prepends the **full contents of `system_prompt.md`** to every round, so the
+window has to hold:
+
+```
+ctx_size  ≥  tokens(system_prompt.md) + RAG context + peer findings + tool results + answer
+             ~13 000 (current charter)    ~1 500        ~2 000        up to ~6 000    ~1 000
+```
+
+Rule of thumb: **tokens ≈ bytes / 4**. The current charter is ~53 KB ≈ 13 000 tokens, so
+`ctx_size: 32768` leaves real headroom. Shrink the mission and you can shrink the window;
+grow it and raise `ctx_size` with it. The workflow prints the resolved prompt size and
+warns when it exceeds ~20 000 tokens.
+
+KV cache at `q8_0` on Qwen3-8B costs roughly **78 KB per token**:
+
+| `ctx_size` | KV cache | Total with 4.7 GB model + ~1 GB buffers |
+| --- | --- | --- |
+| 8 192 | ~0.6 GB | ~6.5 GB |
+| 32 768 | ~2.5 GB | ~8.5 GB |
+| 65 536 | ~5.1 GB | ~11 GB |
+
+All three fit a 16 GB runner; a bigger window mainly costs prefill time, not safety.
 
 > **Rule of thumb:** keep `(model size + KV cache + ~1 GB Python/OS overhead)` below the runner's
 > RAM. On a 16 GB `ubuntu-latest` runner, stay at or below a ~9 GB GGUF file with `-np 1` and
