@@ -32,7 +32,7 @@ CPU flags, RAG depth, or number of debate rounds **without touching the executio
 | --- | --- | --- | --- |
 | `threads` | `-t` | `4` | Matches the 4 vCPU allocation of `ubuntu-latest`; avoids oversubscription stalls. |
 | `threads_batch` | `-tb` | `4` | Threads for prompt evaluation (batch) processing. |
-| `ctx_size` | `-c` | `4096` | Context window per slot; bounds KV-cache memory. |
+| `ctx_size` | `-c` | `8192` | Context window per slot. Tool results, retrieved memory and peer findings all share it, so 8192 is the practical floor when `enable_tools` is on. |
 | `batch_size` | `-b` | `512` | Logical prompt batch size. |
 | `ubatch_size` | `-ub` | `256` | Physical micro-batch; keeps the compute scratchpad inside L3. |
 | `parallel_slots` | `-np` | `1` | Single sequence slot: cuts KV-cache allocation ~4x vs. the multi-slot default. |
@@ -65,7 +65,7 @@ CPU flags, RAG depth, or number of debate rounds **without touching the executio
 ```json
 "debate_rounds": 3,
 "rag_top_k": 6,
-"llama_server_flags": { "ctx_size": 8192, "batch_size": 1024, "ubatch_size": 512 }
+"llama_server_flags": { "ctx_size": 12288, "batch_size": 1024, "ubatch_size": 512 }
 ```
 
 > **Rule of thumb:** keep `(model size + KV cache + ~1 GB Python/OS overhead)` below the runner's
@@ -99,9 +99,9 @@ Tuning knobs live here, not in code:
 * `max_tool_iterations: 6` — deep research rounds; slower on 4 vCPU runners, and more
   prompt tokens per round.
 
-Tool results are truncated to 6 000 characters per call so a large page cannot
-blow up the 4 096-token context on a 16 GB runner. Override with the
-`MAX_TOOL_RESULT_CHARS` environment variable in the workflow if you raise `ctx_size`.
+Tool results are truncated to 6 000 characters per call (~1 500 tokens) so a large
+page cannot crowd out the debate itself. Override with the `MAX_TOOL_RESULT_CHARS`
+environment variable in the workflow if you raise `ctx_size` further.
 
 ---
 

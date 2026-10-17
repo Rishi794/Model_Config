@@ -13,7 +13,7 @@
   "llama_server_flags": {
     "threads": 4,
     "threads_batch": 4,
-    "ctx_size": 4096,
+    "ctx_size": 8192,
     "batch_size": 512,
     "ubatch_size": 256,
     "parallel_slots": 1,
