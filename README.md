@@ -20,7 +20,8 @@ CPU flags, RAG depth, or number of debate rounds **without touching the executio
 | `embedding_dim` | int | Vector width. **Must match the embedding model** and the existing `vec0` table. |
 | `debate_rounds` | int | Number of critique/rebuttal rounds. Round 1 = independent thesis, round N = critique of round N-1. |
 | `rag_top_k` | int | How many historical findings are injected into the prompt. |
-| `peer_timeout_sec` | int | How long an agent waits for peers to publish a round before failing. |
+| `peer_timeout_sec` | int | How long an agent waits for the peer-sync target before proceeding with whichever peers published (it fails only when no peer published at all). |
+| `peer_sync_count` | int | How many peers a round-2 agent synchronizes with. `0` = strict all-peers barrier (small rosters); `8` lets 100-agent rosters work despite the account's ~20 concurrent-runner limit. |
 | `enable_tools` | bool | Master switch for the agent tool loop (`search_web`, `query_arxiv`, `fetch_url`, `compute`). |
 | `max_tool_iterations` | int | Tool-call budget per debate round, per agent. Each iteration may dispatch one or more tools. |
 | `llama_cpp_release` | string | `"auto"` = newest `llama.cpp` nightly with Linux x64 CPU binaries; or pin e.g. `"b11707"`. |

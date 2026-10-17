@@ -7,6 +7,7 @@
   "debate_rounds": 2,
   "rag_top_k": 4,
   "peer_timeout_sec": 1800,
+  "peer_sync_count": 8,
   "enable_tools": true,
   "max_tool_iterations": 3,
   "llama_cpp_release": "auto",
